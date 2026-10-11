@@ -92,7 +92,7 @@ def run_backtest(
         chosen = [x for x in setups if x.side is side]
         sig, reason = build_signal(s, i, side, chosen, r, symbol, tf)
         if sig is None:
-            rejected[reason.split(":")[0]] += 1
+            rejected[reason.split(": ")[0]] += 1
             continue
         qty = position_size(equity, r.risk_per_trade_pct, sig.entry, sig.stop_loss, r.fee_pct, r.max_leverage)
         if qty <= 0:
