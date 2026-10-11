@@ -1,0 +1,68 @@
+# Configurazione NiTo — copia in config.toml e modifica.
+# I segreti (token, chiavi API) vanno SOLO nel file .env, mai qui.
+
+[general]
+# signals = solo segnali su Telegram (esiti tracciati virtualmente)
+# paper   = simulazione completa con capitale virtuale e pulsanti di conferma
+# live    = ordini reali: richiede LIVE_TRADING_CONFIRM nel .env
+mode = "signals"
+timezone = "Europe/Rome"
+database = "nito.sqlite3"
+
+[market]
+exchange = "bybit"             # qualsiasi exchange ccxt; testato con Bybit
+market_type = "swap"           # swap = perpetual USDT (unico ammesso in live); spot = solo long
+symbols = ["BTC/USDT:USDT", "ETH/USDT:USDT", "SOL/USDT:USDT"]
+timeframe = "5m"               # 1m, 5m, 15m, 30m, 1h ...
+candles = 600                  # storico per scaldare la EMA223
+btc_filter = true              # altcoin solo nella direzione del trend di BTC
+btc_symbol = "BTC/USDT:USDT"
+testnet = true                 # in live usa il testnet dell'exchange (soldi finti)
+
+[strategy]
+ema_fast = 5
+ema_signal = 10
+ema_mid = 60
+ema_slow = 223
+# Setup disponibili: viagra, fake_ema10, third_touch_60, third_touch_223, shimano,
+# emergence, anti_crossing, downward_fake, bomb. Disattiva quelli che nel backtest
+# non funzionano sui tuoi mercati.
+enabled = ["viagra", "fake_ema10", "third_touch_60", "third_touch_223", "shimano",
+           "emergence", "anti_crossing", "downward_fake", "bomb"]
+trend_filter = true            # long solo con EMA60 > EMA223, short solo con EMA60 < EMA223
+allow_short = true
+viagra_min_closes = 5          # chiusure consecutive oltre la EMA10 prima della rottura
+shimano_min_closes = 8         # chiusure consecutive tra EMA60 ed EMA223
+touch_lookback = 60
+touches_required = 3
+cross_gap_pct = 0.15           # distanza % tra EMA60 ed EMA223 per "sta per incrociare"
+cross_lookback = 5
+fake_cross_lookback = 100
+bomb_threshold_pct = 2.0       # variazione % minima della candela "Bomb"
+min_confluence = 1             # quanti setup concordi servono sulla stessa candela
+
+[risk]
+risk_per_trade_pct = 1.0       # % del capitale persa se colpisce lo SL (max 2)
+reward_risk = 2.0              # TP = entrata + 2 × rischio
+min_reward_risk = 1.2
+min_net_reward_risk = 1.0      # scarta i segnali in cui le commissioni mangiano il guadagno
+sl_mode = "candle"             # candle = minimo/massimo della candela di ingresso; swing = ultime N candele
+swing_lookback = 5
+sl_atr_buffer = 0.1            # margine oltre il minimo, in ATR
+min_sl_pct = 0.2               # SL più stretti vengono allargati a questa distanza
+max_sl_pct = 3.0               # SL più larghi: segnale scartato
+break_even_at_r = 1.0          # stop a pareggio quando il prezzo fa +1R (0 = disattivato)
+max_open_positions = 3
+max_daily_loss_pct = 3.0       # raggiunta questa perdita giornaliera, stop fino a domani
+max_consecutive_losses = 4     # dopo N perdite di fila il bot si ferma (/resume)
+max_leverage = 3
+cooldown_minutes = 30          # minimo intervallo tra due segnali sullo stesso simbolo
+fee_pct = 0.06                 # commissione taker per lato
+account_equity = 1000.0        # capitale virtuale per signals/paper
+
+[execution]
+require_confirmation = true    # paper/live: ogni ordine va confermato con un pulsante
+confirmation_timeout_sec = 120
+max_slippage_r = 0.25          # alla conferma, annulla se il prezzo si è mosso più di 0.25R
+monitor_interval_sec = 15
+margin_mode = "isolated"
