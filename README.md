@@ -21,8 +21,8 @@ Le regole dei setup e le fonti sono in [docs/STRATEGIA.md](docs/STRATEGIA.md).
 Nel progetto c'è anche un secondo bot, indipendente: registra i numeri usciti
 su più tavoli di roulette e provider, mostra statistiche e serie in corso e
 avvisa quando un colore (o pari/dispari, dozzina, …) esce N volte di fila, con
-N scelto da te. Si avvia con `python -m nito.roulette`; guida completa in
-[docs/ROULETTE.md](docs/ROULETTE.md).
+N scelto da te. Si avvia con un doppio clic su `avvia_roulette.py` (oppure
+`python -m nito.roulette`); guida completa in [docs/ROULETTE.md](docs/ROULETTE.md).
 
 ## Esempio di segnale
 

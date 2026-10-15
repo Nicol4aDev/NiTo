@@ -24,6 +24,17 @@ Dopo l'alert, se la serie continua arriva `➕ continua, 7 di fila`; quando si
 interrompe arriva `✋ serie interrotta dopo 9`. Entrambi si possono disattivare
 in `roulette.toml`.
 
+## Avvio rapido sul tuo PC
+
+1. Installa Python 3.11 o superiore da [python.org](https://www.python.org/downloads/)
+   (su Windows spunta **Add python.exe to PATH**).
+2. Scarica il progetto ed estrai lo ZIP.
+3. Fai doppio clic su `avvia_roulette.py` (su Mac/Linux: `python3 avvia_roulette.py`).
+   Al primo avvio installa le librerie in `.venv`, crea `roulette.toml` e ti
+   chiede token del bot e user id Telegram, che salva in `.env`.
+
+Il bot resta attivo finché la finestra è aperta e il PC acceso.
+
 ## Installazione
 
 Stessa installazione del progetto (vedi [README](../README.md)), poi:
