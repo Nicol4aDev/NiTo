@@ -16,6 +16,14 @@ perdite.
 
 Le regole dei setup e le fonti sono in [docs/STRATEGIA.md](docs/STRATEGIA.md).
 
+## Roulette tracker
+
+Nel progetto c'è anche un secondo bot, indipendente: registra i numeri usciti
+su più tavoli di roulette e provider, mostra statistiche e serie in corso e
+avvisa quando un colore (o pari/dispari, dozzina, …) esce N volte di fila, con
+N scelto da te. Si avvia con `python -m nito.roulette`; guida completa in
+[docs/ROULETTE.md](docs/ROULETTE.md).
+
 ## Esempio di segnale
 
 Valori illustrativi:
@@ -152,6 +160,8 @@ nito/
   brokers/live.py  ordini reali via ccxt con le protezioni sopra
   telegram_bot.py  comandi, pulsanti, job periodici
   backtest.py      backtest da exchange o CSV
-config.example.toml  parametri (copiare in config.toml)
-.env.example         segreti (copiare in .env)
+  roulette/        roulette tracker (vedi docs/ROULETTE.md)
+config.example.toml    parametri (copiare in config.toml)
+roulette.example.toml  tavoli del roulette tracker (copiare in roulette.toml)
+.env.example           segreti (copiare in .env)
 ```

@@ -1,5 +1,6 @@
 .env
 config.toml
+roulette.toml
 *.sqlite3
 *.sqlite3-journal
 __pycache__/
