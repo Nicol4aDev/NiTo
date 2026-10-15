@@ -49,6 +49,15 @@ python -m nito.roulette --check   # valida la configurazione
 python -m nito.roulette           # avvia (oppure: nito-roulette)
 ```
 
+### Su un server (anche solo dal telefono)
+
+Nel repository c'è un `Dockerfile`: servizi come [Railway](https://railway.com)
+lo riconoscono da soli. Collega il repository, imposta le variabili
+`ROULETTE_BOT_TOKEN` e `ROULETTE_ALLOWED_USERS` e il bot parte. Per non perdere
+numeri e alert a ogni nuovo deploy, aggiungi un volume montato su `/data` e la
+variabile `ROULETTE_DATABASE=/data/roulette.sqlite3`. Senza un `roulette.toml`
+nel repository si usano i tavoli di `roulette.example.toml`.
+
 ## Comandi
 
 | Comando | Azione |

@@ -121,6 +121,9 @@ def config_from_dict(data: dict[str, Any], env: dict[str, str] | None = None) ->
         telegram_token=env.get("ROULETTE_BOT_TOKEN", ""),
         allowed_user_ids=_parse_ids(env.get("ROULETTE_ALLOWED_USERS", "")),
     )
+    # sui servizi cloud il database va su un disco persistente (es. /data/roulette.sqlite3)
+    if env.get("ROULETTE_DATABASE"):
+        cfg.database = env["ROULETTE_DATABASE"]
     for t in cfg.tables:
         if not t.interval_sec:
             t.interval_sec = DEFAULT_INTERVAL.get(t.source, 0.0)

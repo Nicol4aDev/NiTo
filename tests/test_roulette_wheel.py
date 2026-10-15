@@ -109,3 +109,9 @@ def test_env_vars_in_feed_headers(monkeypatch):
     cfg = config_from_dict({"tables": [t]}, env={})
     assert cfg.tables[0].headers["Authorization"] == "Bearer segreto"
     assert cfg.tables[0].interval_sec == 15
+
+
+def test_database_path_from_env():
+    env = {"ROULETTE_DATABASE": "/data/roulette.sqlite3"}
+    assert load_config("roulette.example.toml", env=env).database == "/data/roulette.sqlite3"
+    assert load_config("roulette.example.toml", env={}).database == "roulette.sqlite3"
