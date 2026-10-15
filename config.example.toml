@@ -1,68 +1,90 @@
-# Configurazione NiTo — copia in config.toml e modifica.
-# I segreti (token, chiavi API) vanno SOLO nel file .env, mai qui.
+# Configurazione del bot — copia questo file in config.toml e compila [telegram].
+# config.toml contiene il token: non condividerlo e non pubblicarlo.
+
+[telegram]
+token = ""                     # token del bot, da @BotFather (es. "123456789:AAH...")
+allowed_users = []             # il tuo user id, da @userinfobot (es. [123456789]; più id: [111, 222])
 
 [general]
-# signals = solo segnali su Telegram (esiti tracciati virtualmente)
-# paper   = simulazione completa con capitale virtuale e pulsanti di conferma
-# live    = ordini reali: richiede LIVE_TRADING_CONFIRM nel .env
-mode = "signals"
-timezone = "Europe/Rome"
-database = "nito.sqlite3"
+database = "roulette.sqlite3"
+history = 500                  # giri tenuti in memoria per tavolo (serie e ritardi)
+notify_continuation = true     # dopo l'alert, avvisa a ogni giro in più della serie
+notify_break = true            # avvisa quando una serie segnalata si interrompe
+max_alerts_per_chat = 30
 
-[market]
-exchange = "bybit"             # qualsiasi exchange ccxt; testato con Bybit
-market_type = "swap"           # swap = perpetual USDT (unico ammesso in live); spot = solo long
-symbols = ["BTC/USDT:USDT", "ETH/USDT:USDT", "SOL/USDT:USDT"]
-timeframe = "5m"               # 1m, 5m, 15m, 30m, 1h ...
-candles = 600                  # storico per scaldare la EMA223
-btc_filter = true              # altcoin solo nella direzione del trend di BTC
-btc_symbol = "BTC/USDT:USDT"
-testnet = true                 # in live usa il testnet dell'exchange (soldi finti)
+# Ogni [[tables]] è un tavolo. Campi comuni:
+#   id        identificativo breve (a-z, 0-9, - e _), si usa nei comandi: /ultimi evo-lightning
+#   name      nome mostrato
+#   provider  provider del gioco: gli alert si possono limitare a un provider
+#   wheel     "european" (0-36, default) o "american" (0, 00, 1-36)
+#   source    da dove arrivano i risultati:
+#               manual     inseriti da Telegram con /add o /inserisci
+#               simulator  giri casuali ogni interval_sec (per provare il bot)
+#               http_json  letti da un feed JSON ogni interval_sec (vedi esempio in fondo)
 
-[strategy]
-ema_fast = 5
-ema_signal = 10
-ema_mid = 60
-ema_slow = 223
-# Setup disponibili: viagra, fake_ema10, third_touch_60, third_touch_223, shimano,
-# emergence, anti_crossing, downward_fake, bomb. Disattiva quelli che nel backtest
-# non funzionano sui tuoi mercati.
-enabled = ["viagra", "fake_ema10", "third_touch_60", "third_touch_223", "shimano",
-           "emergence", "anti_crossing", "downward_fake", "bomb"]
-trend_filter = true            # long solo con EMA60 > EMA223, short solo con EMA60 < EMA223
-allow_short = true
-viagra_min_closes = 5          # chiusure consecutive oltre la EMA10 prima della rottura
-shimano_min_closes = 8         # chiusure consecutive tra EMA60 ed EMA223
-touch_lookback = 60
-touches_required = 3
-cross_gap_pct = 0.15           # distanza % tra EMA60 ed EMA223 per "sta per incrociare"
-cross_lookback = 5
-fake_cross_lookback = 100
-bomb_threshold_pct = 2.0       # variazione % minima della candela "Bomb"
-min_confluence = 1             # quanti setup concordi servono sulla stessa candela
+[[tables]]
+id = "evo-lightning"
+name = "Lightning Roulette"
+provider = "Evolution"
+source = "manual"
 
-[risk]
-risk_per_trade_pct = 1.0       # % del capitale persa se colpisce lo SL (max 2)
-reward_risk = 2.0              # TP = entrata + 2 × rischio
-min_reward_risk = 1.2
-min_net_reward_risk = 1.0      # scarta i segnali in cui le commissioni mangiano il guadagno
-sl_mode = "candle"             # candle = minimo/massimo della candela di ingresso; swing = ultime N candele
-swing_lookback = 5
-sl_atr_buffer = 0.1            # margine oltre il minimo, in ATR
-min_sl_pct = 0.2               # SL più stretti vengono allargati a questa distanza
-max_sl_pct = 3.0               # SL più larghi: segnale scartato
-break_even_at_r = 1.0          # stop a pareggio quando il prezzo fa +1R (0 = disattivato)
-max_open_positions = 3
-max_daily_loss_pct = 3.0       # raggiunta questa perdita giornaliera, stop fino a domani
-max_consecutive_losses = 4     # dopo N perdite di fila il bot si ferma (/resume)
-max_leverage = 3
-cooldown_minutes = 30          # minimo intervallo tra due segnali sullo stesso simbolo
-fee_pct = 0.06                 # commissione taker per lato
-account_equity = 1000.0        # capitale virtuale per signals/paper
+[[tables]]
+id = "evo-immersive"
+name = "Immersive Roulette"
+provider = "Evolution"
+source = "manual"
 
-[execution]
-require_confirmation = true    # paper/live: ogni ordine va confermato con un pulsante
-confirmation_timeout_sec = 120
-max_slippage_r = 0.25          # alla conferma, annulla se il prezzo si è mosso più di 0.25R
-monitor_interval_sec = 15
-margin_mode = "isolated"
+[[tables]]
+id = "pp-mega"
+name = "Mega Roulette"
+provider = "Pragmatic Play"
+source = "manual"
+
+[[tables]]
+id = "pt-quantum"
+name = "Quantum Roulette"
+provider = "Playtech"
+source = "manual"
+
+[[tables]]
+id = "ezugi-auto"
+name = "Auto Roulette"
+provider = "Ezugi"
+source = "manual"
+
+[[tables]]
+id = "us-demo"
+name = "American Roulette"
+provider = "Demo"
+wheel = "american"
+source = "manual"
+
+# Tavolo simulato: genera un numero casuale ogni 20 secondi. Utile per
+# provare gli alert subito; toglilo quando colleghi le tue fonti.
+[[tables]]
+id = "demo"
+name = "Roulette simulata"
+provider = "Demo"
+source = "simulator"
+interval_sec = 20
+
+# Esempio di feed JSON. I provider non pubblicano API aperte con i risultati:
+# usa un servizio a cui hai accesso e che sei autorizzato a interrogare.
+# Se il feed risponde, per esempio:
+#   {"data": {"results": [{"gameId": "a91f", "result": {"number": 17}}, ...]}}
+# con il giro più recente per primo, la configurazione è:
+#
+# [[tables]]
+# id = "evo-xxxtreme"
+# name = "XXXtreme Lightning Roulette"
+# provider = "Evolution"
+# source = "http_json"
+# url = "https://esempio.it/api/xxxtreme/ultimi"
+# interval_sec = 15
+# items_path = "data.results"   # dove sta la lista dei giri ("" = la risposta stessa)
+# number_path = "result.number" # dove sta il numero dentro ogni giro
+# id_path = "gameId"            # id univoco del giro: evita di contarlo due volte
+# newest_first = true           # false se la lista va dal più vecchio al più recente
+# timeout_sec = 10
+# [tables.headers]               # opzionale; ${VAR} = variabile d'ambiente
+# Authorization = "Bearer ${FEED_TOKEN}"

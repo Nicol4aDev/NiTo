@@ -1,167 +1,164 @@
-# NiTo — bot Telegram di segnali e trading con TP/SL
+# Roulette tracker — bot Telegram
 
-Bot Telegram che analizza i mercati crypto con i setup del metodo
-**Scalping The Bull** (EMA 5/10/60/223, trigger point giornalieri) e invia
-segnali con **entrata, Take Profit e Stop Loss** già calcolati. Può anche
-eseguirli in automatico, con una serie di protezioni pensate per limitare le
-perdite.
+Bot Telegram che registra i numeri usciti su più tavoli di roulette, di
+provider diversi (Evolution, Pragmatic Play, Playtech, Ezugi, …), mostra
+statistiche e serie in corso e **ti avvisa quando un colore (o un'altra
+categoria) esce N volte di fila**, con N scelto da te.
 
-> ⚠️ **Avvertenza.** Nessun bot rende il trading "sicuro" nel senso di "senza
-> perdite". Lo scalping con leva è ad alto rischio e la maggior parte dei
-> trader retail perde denaro. "Sicuro" qui significa: rischio per trade
-> limitato e noto, stop loss sempre presente sull'exchange, blocchi automatici
-> e nessun ordine reale senza un consenso esplicito. Usa solo denaro che puoi
-> permetterti di perdere. Se pubblichi i segnali ad altre persone, informati
-> sugli obblighi legali in materia di consulenza finanziaria.
+> ℹ️ Ogni giro è indipendente: dopo 10 rossi di fila il nero ha la stessa
+> probabilità di sempre (18/37 sulla ruota europea). Il bot registra cosa è
+> successo, non prevede cosa succederà. Se il gioco smette di essere un
+> divertimento, in Italia c'è il Telefono Verde Nazionale per le problematiche
+> legate al gioco d'azzardo (ISS): 800 55 88 22.
 
-Le regole dei setup e le fonti sono in [docs/STRATEGIA.md](docs/STRATEGIA.md).
-
-## Roulette tracker
-
-Nel progetto c'è anche un secondo bot, indipendente: registra i numeri usciti
-su più tavoli di roulette e provider, mostra statistiche e serie in corso e
-avvisa quando un colore (o pari/dispari, dozzina, …) esce N volte di fila, con
-N scelto da te. Si avvia con un doppio clic su `avvia_roulette.py` (oppure
-`python -m nito.roulette`); guida completa in [docs/ROULETTE.md](docs/ROULETTE.md).
-
-## Esempio di segnale
-
-Valori illustrativi:
+## Esempio di alert
 
 ```
-🟢 LONG SOLUSDT · 5m · #12
-Setup: Viagra + Fake EMA10
-  • 6 chiusure sotto la EMA10, poi rottura
-  • falsa rottura della EMA10 riassorbita
-Trend: 🟢 rialzista (EMA60 > EMA223)
-
-▶️ Entrata: 145.3200
-🎯 TP: 147.0800 (+1.21%)
-🛑 SL: 144.4400 (-0.61%)
-⚖️ R:R 2.00 (netto commissioni 1.50)
-🔒 Stop a break-even quando tocca 146.2000
-
-💰 Size: 9.48421 SOL (rischio 10.00 = 1% di 1000.00)
-⏱ 11/10/2026 14:35 · modalità SIGNALS
+🎰 Lightning Roulette · Evolution
+🚨 🔴 Rosso: 6 di fila
+Uscito: 🔴32
+Ultimi: 🔴32 🔴19 🔴21 🔴25 🔴34 🔴3 ⚫15 🟢0 ⚫22 🔴14
 ```
 
-## Modalità
+Dopo l'alert, se la serie continua arriva `➕ continua, 7 di fila`; quando si
+interrompe arriva `✋ serie interrotta dopo 9`.
 
-| Modalità | Cosa fa | Chiavi API |
-|---|---|---|
-| `signals` (default) | invia i segnali e segue virtualmente l'esito (TP, SL, break-even) | no |
-| `paper` | simulazione con capitale virtuale; ogni trade si conferma con un pulsante | no |
-| `live` | ordini reali (testnet di default) | sì |
+## Token e utenti autorizzati
 
-Percorso consigliato: **backtest → signals → paper → live su testnet → live
-con capitale piccolo**. Non saltare passaggi.
+Tutto sta in un solo file, **`config.toml`**, nella cartella del progetto:
 
-## Installazione
+1. Copia `config.example.toml` e chiama la copia `config.toml`.
+2. Aprilo e compila la sezione `[telegram]` in cima:
 
-Serve Python 3.11 o superiore.
-
-```bash
-git clone https://github.com/Nicol4aDev/NiTo.git
-cd NiTo
-python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -e ".[dev]"
-cp config.example.toml config.toml
-cp .env.example .env
+```toml
+[telegram]
+token = "123456789:AAH..."     # token del bot, da @BotFather
+allowed_users = [123456789]    # il tuo user id, da @userinfobot
 ```
 
-### Creare il bot Telegram
+- Il token si ottiene scrivendo `/newbot` a [@BotFather](https://t.me/BotFather).
+- Il tuo user id si ottiene scrivendo `/start` a [@userinfobot](https://t.me/userinfobot).
+  Più persone: `allowed_users = [111111, 222222]`.
+- `config.toml` contiene il token: non condividerlo (è già escluso da git).
 
-1. Su Telegram scrivi a [@BotFather](https://t.me/BotFather), comando `/newbot`,
-   e copia il token in `TELEGRAM_BOT_TOKEN`.
-2. Avvia il bot e scrivigli `/start`: se non sei autorizzato ti risponde con il
-   tuo **user id**. Mettilo in `TELEGRAM_ALLOWED_USERS` e in `TELEGRAM_CHAT_ID`
-   (o usa l'id di un gruppo/canale dove il bot è amministratore).
-3. Controlla la configurazione e avvia:
-
-```bash
-python -m nito --check
-python -m nito
-```
+Serve Python 3.11 o superiore; le librerie sono in `requirements.txt`.
+Il bot si avvia con `python -m roulette`.
 
 ## Comandi
 
 | Comando | Azione |
 |---|---|
-| `/status` | modalità, capitale, P&L di oggi, blocchi attivi |
-| `/positions` | posizioni aperte con TP/SL e R attuale |
-| `/stats` | win rate, P&L, profit factor, drawdown |
-| `/scan` | analizza subito i mercati |
-| `/config` | parametri di rischio attivi |
-| `/pause` · `/resume` | sospende/riattiva i nuovi segnali |
-| `/panic` | chiude tutte le posizioni a mercato e blocca il bot (chiede conferma) |
+| `/tavoli` | tavoli raggruppati per provider, ultimi numeri, serie di colore in corso |
+| `/ultimi [tavolo] [n]` | ultimi n numeri (default 20), dal più recente |
+| `/serie` | serie in corso di almeno 3 su tutti i tavoli, le più lunghe in alto |
+| `/serie tavolo` | tutte le serie in corso e i ritardi (giri senza uscire) di un tavolo |
+| `/stats [tavolo] [n]` | frequenze, serie più lunghe, numeri caldi e freddi sugli ultimi n giri (default 200) |
+| `/alert` | crea un alert con i pulsanti: categoria → quante di fila → tavoli |
+| `/alert rosso 6 [tavolo o provider]` | crea un alert in una riga |
+| `/alerts` | i tuoi alert, con i pulsanti per eliminarli |
+| `/add tavolo 17 0 32` | registra numeri a mano, dal più vecchio al più recente |
+| `/inserisci [tavolo]` | inserimento rapido: ogni messaggio con dei numeri viene registrato |
+| `/fine` | esce dall'inserimento rapido |
+| `/annulla [tavolo]` | cancella l'ultimo numero inserito a mano |
 
-Solo gli utenti in `TELEGRAM_ALLOWED_USERS` possono usare comandi e pulsanti.
+Il tavolo si indica con il suo id (`evo-lightning`), con il nome o con una parte
+univoca di id o nome (`mega`). Se manca, il bot mostra i pulsanti per sceglierlo.
 
-## Protezioni
+### Alert
 
-**Rischio**
-- Size calcolata in modo che lo stop costi `risk_per_trade_pct` del capitale
-  (default 1%), commissioni incluse. Limiti massimi non modificabili: 2% per
-  trade, leva 10x, perdita giornaliera 10%.
-- Stop giornaliero (default −3%): nuove operazioni bloccate fino al giorno dopo.
-- Pausa automatica dopo N perdite consecutive (default 4), riattivabile con `/resume`.
-- Massimo di posizioni aperte, una sola per simbolo, cooldown tra i segnali.
-- Scartati i segnali con SL troppo largo o con R:R netto commissioni insufficiente.
-
-**Esecuzione (live)**
-- Gli ordini reali richiedono `mode = "live"` **e** `LIVE_TRADING_CONFIRM=HO_CAPITO_I_RISCHI` nel `.env`.
-- Testnet attivo di default; conferma manuale di ogni ordine attiva di default.
-- Alla conferma, il segnale è annullato se è scaduto o se il prezzo si è mosso più di 0,25R.
-- Lo stop loss è un ordine **reduce-only sull'exchange**: protegge anche se il bot si spegne.
-- Se l'exchange rifiuta lo stop, la posizione appena aperta viene **chiusa subito**.
-- Se il prezzo di liquidazione cadrebbe prima dello stop, la posizione viene chiusa.
-- Rete di sicurezza: se il prezzo supera lo stop e la posizione è ancora aperta, chiusura a mercato.
-- Break-even: prima si piazza il nuovo stop, poi si cancella il vecchio.
-- Solo derivati perpetual (`swap`) in live; margine isolato.
-- Stato (kill switch, perdita giornaliera, posizioni) salvato su SQLite: sopravvive ai riavvii.
-  All'avvio il bot avvisa delle posizioni sull'exchange che non gestisce.
-
-**Chiavi API**: crea una chiave con **solo** permesso di trading, **prelievi
-disattivati** e, se l'exchange lo consente, limitata all'IP del server. Non
-committare mai `.env` (è già in `.gitignore`).
-
-## Backtest
-
-```bash
-python -m nito.backtest --symbol SOL/USDT:USDT --timeframe 5m --days 90
-python -m nito.backtest --csv candele.csv --timeframe 5m   # timestamp,open,high,low,close,volume
+```
+/alert rosso 6                     6 rossi di fila su qualsiasi tavolo
+/alert nero 8 evolution            8 neri di fila sui tavoli Evolution
+/alert dispari 5 pragmatic play    5 dispari di fila sui tavoli Pragmatic Play
+/alert verde 2 mega                due zeri di fila su Mega Roulette
+/alert d3 7                        terza dozzina 7 volte di fila
 ```
 
-Usa le stesse regole del bot, con ipotesi conservative (se nella stessa candela
-si toccano sia SL sia TP vince lo SL; commissioni su entrata e uscita) e mostra
-i risultati per singolo setup.
+Categorie: `rosso`, `nero`, `verde` (lo zero), `pari`, `dispari`, `basso`
+(1-18), `alto` (19-36), `d1` `d2` `d3` (dozzine), `c1` `c2` `c3` (colonne).
+Lo zero interrompe le serie di tutte le categorie tranne `verde`, come al tavolo.
+
+- N va da 2 a 50; i pulsanti propongono i valori più usati.
+- Gli alert valgono per la chat in cui li crei: in un gruppo arrivano al gruppo.
+- Più alert sovrapposti nella stessa chat producono un solo messaggio per giro.
+- Se arrivano più giri insieme (una sequenza inserita a mano, un feed in
+  ritardo) il bot confronta lo stato prima e dopo e manda un solo messaggio.
+- In `[general]` di `config.toml` puoi spegnere gli avvisi di continuazione
+  (`notify_continuation`) e di interruzione (`notify_break`).
+
+## Tavoli e fonti dei risultati
+
+I tavoli sono elencati in `config.toml` (`[[tables]]`); ognuno ha una `source`:
+
+| source | Come funziona |
+|---|---|
+| `manual` | i numeri si inseriscono da Telegram con `/add` o `/inserisci` |
+| `simulator` | un numero casuale ogni `interval_sec`: serve a provare il bot |
+| `http_json` | il bot interroga un feed JSON ogni `interval_sec` |
+
+Evolution, Pragmatic Play, Playtech ed Ezugi **non pubblicano API aperte** con i
+risultati dei tavoli: il bot non contiene scraper di siti di terzi, che
+cambiano spesso e di solito vietano l'uso automatico nei termini di servizio.
+La sorgente `http_json` è generica: va puntata verso un servizio a cui hai
+accesso e che sei autorizzato a usare.
+
+### Configurare un feed JSON
+
+Se il feed risponde, per esempio:
+
+```json
+{"data": {"results": [
+  {"gameId": "a91f", "result": {"number": 17}},
+  {"gameId": "a91e", "result": {"number": 0}}
+]}}
+```
+
+con il giro più recente per primo:
+
+```toml
+[[tables]]
+id = "evo-xxxtreme"
+name = "XXXtreme Lightning Roulette"
+provider = "Evolution"
+source = "http_json"
+url = "https://esempio.it/api/xxxtreme/ultimi"
+interval_sec = 15
+items_path = "data.results"   # lista dei giri; "" se la risposta è già la lista
+number_path = "result.number" # numero dentro ogni giro (intero o testo, "00" per l'americana)
+id_path = "gameId"            # id univoco del giro: evita di contarlo due volte
+newest_first = true           # false se la lista va dal più vecchio al più recente
+```
+
+- I percorsi sono separati da punti; per gli elementi di una lista si usa
+  l'indice (`games.0.number`).
+- Al primo recupero dopo l'avvio i giri presenti nel feed riempiono lo storico
+  **senza** alert (sarebbero serie già vecchie).
+- Se il feed non risponde, il bot lo scrive nel log e riprova all'intervallo successivo.
+
+## Dati
+
+Giri e alert sono salvati su SQLite (`roulette.sqlite3`) e sopravvivono ai
+riavvii. Serie e ritardi si calcolano sugli ultimi `history` giri (default 500)
+di ogni tavolo; `/stats` può leggere fino a 10.000 giri.
 
 ## Test
 
 ```bash
+pip install -e ".[dev]"
 pytest
 ```
-
-I test coprono indicatori, ogni setup, calcolo di TP/SL, dimensionamento,
-blocchi di rischio, simulazione, flusso di conferma Telegram e il broker live
-con un exchange simulato (stop rifiutato, liquidazione, break-even, stop di
-emergenza). Il broker live **non** è stato provato contro un exchange reale:
-provalo sul testnet prima di usare soldi veri.
 
 ## Struttura
 
 ```
-nito/
-  strategy.py      setup Scalping The Bull (regole su candele chiuse)
-  signals.py       entrata, SL strutturale, TP a R multiplo
-  risk.py          size, stop giornaliero, perdite consecutive, cooldown
-  engine.py        scansione → segnale → conferma → esecuzione → monitor
-  brokers/paper.py simulazione
-  brokers/live.py  ordini reali via ccxt con le protezioni sopra
-  telegram_bot.py  comandi, pulsanti, job periodici
-  backtest.py      backtest da exchange o CSV
-  roulette/        roulette tracker (vedi docs/ROULETTE.md)
-config.example.toml    parametri (copiare in config.toml)
-roulette.example.toml  tavoli del roulette tracker (copiare in roulette.toml)
-.env.example           segreti (copiare in .env)
+roulette/
+  wheel.py       numeri, colori, categorie, serie e ritardi
+  config.py      lettura di config.toml
+  store.py       SQLite: giri e alert
+  tracker.py     registra i giri e decide quali alert inviare
+  sources.py     feed JSON e simulatore
+  formatting.py  messaggi
+  bot.py         comandi, pulsanti, job periodici
+config.example.toml   configurazione di esempio (copiare in config.toml)
+requirements.txt      librerie necessarie
 ```

@@ -1,18 +1,20 @@
-"""Avvio del bot: `python -m nito --config config.toml`."""
+"""Avvio del bot: `python -m roulette` (legge config.toml)."""
 
 from __future__ import annotations
 
 import argparse
 import logging
 import sys
+from collections import Counter
 
 from .config import ConfigError, load_config, validate
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="nito", description="Bot Telegram di segnali/trading")
+    parser = argparse.ArgumentParser(
+        prog="roulette", description="Bot Telegram che traccia i risultati delle roulette"
+    )
     parser.add_argument("--config", default="config.toml")
-    parser.add_argument("--env", default=".env", help="file con i segreti (default .env)")
     parser.add_argument("--check", action="store_true", help="valida la configurazione ed esci")
     args = parser.parse_args(argv)
 
@@ -22,13 +24,6 @@ def main(argv: list[str] | None = None) -> int:
     logging.getLogger("httpx").setLevel(logging.WARNING)
 
     try:
-        from dotenv import load_dotenv
-
-        load_dotenv(args.env)
-    except ImportError:
-        pass
-
-    try:
         cfg = load_config(args.config)
         validate(cfg, require_telegram=True)
     except ConfigError as exc:
@@ -36,10 +31,13 @@ def main(argv: list[str] | None = None) -> int:
         return 2
 
     if args.check:
-        print(f"Configurazione valida: modalità {cfg.mode.value}, {len(cfg.market.symbols)} simboli.")
+        sources = Counter(t.source for t in cfg.tables)
+        detail = ", ".join(f"{n} {s}" for s, n in sources.items())
+        print(f"Configurazione valida: {len(cfg.tables)} tavoli ({detail}), "
+              f"{len(cfg.providers())} provider.")
         return 0
 
-    from .telegram_bot import build_application
+    from .bot import build_application
 
     build_application(cfg).run_polling(allowed_updates=["message", "callback_query"])
     return 0

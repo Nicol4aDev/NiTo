@@ -4,12 +4,12 @@ import random
 import httpx
 import pytest
 
-from nito.roulette.bot import create_runtime, poll_feed
-from nito.roulette.config import config_from_dict
-from nito.roulette.formatting import all_streaks_text, stats_text, table_streaks_text, tables_text
-from nito.roulette.sources import HttpJsonSource, Simulator, get_path, parse_feed
-from nito.roulette.store import Store
-from nito.roulette.tracker import Tracker
+from roulette.bot import create_runtime, poll_feed
+from roulette.config import config_from_dict
+from roulette.formatting import all_streaks_text, stats_text, table_streaks_text, tables_text
+from roulette.sources import HttpJsonSource, Simulator, get_path, parse_feed
+from roulette.store import Store
+from roulette.tracker import Tracker
 
 TABLES = [
     {"id": "evo-light", "name": "Lightning Roulette", "provider": "Evolution"},
@@ -22,7 +22,7 @@ CHAT, OTHER = 100, 200
 
 
 def make(general=None, tables=TABLES):
-    cfg = config_from_dict({"general": general or {}, "tables": tables}, env={})
+    cfg = config_from_dict({"general": general or {}, "tables": tables})
     store = Store()
     return Tracker(cfg, store, clock=lambda: 1_760_000_000.0), store
 
@@ -163,7 +163,7 @@ def test_get_path_and_parse_feed():
     cfg = config_from_dict({"tables": [{
         "id": "f", "name": "F", "provider": "P", "source": "http_json", "url": "https://x",
         "items_path": "data.results", "number_path": "result.number", "id_path": "gameId",
-    }]}, env={})
+    }]})
     table = cfg.tables[0]
     # "00" non esiste sulla ruota europea: scartato
     assert parse_feed(table, payload) == [(0, "a"), (17, "b")]
@@ -181,7 +181,7 @@ async def test_poll_feed_backfills_silently_then_alerts():
     cfg = config_from_dict({"tables": [{
         "id": "f", "name": "Feed", "provider": "P", "source": "http_json", "url": "https://x",
         "number_path": "n", "id_path": "id",
-    }]}, env={})
+    }]})
     rt = create_runtime(cfg, Store())
     await rt.http.aclose()
     rt.http = httpx.AsyncClient(transport=httpx.MockTransport(handler))
@@ -215,7 +215,7 @@ async def test_poll_feed_backfills_silently_then_alerts():
 def test_simulator_respects_wheel():
     cfg = config_from_dict({"tables": [
         {"id": "s", "name": "S", "provider": "P", "source": "simulator", "wheel": "american"},
-    ]}, env={})
+    ]})
     sim = Simulator(cfg.tables[0], random.Random(1))
     seen = {sim.spin() for _ in range(2000)}
     assert seen == set(range(38))

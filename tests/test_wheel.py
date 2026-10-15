@@ -1,8 +1,9 @@
+from pathlib import Path
+
 import pytest
 
-from nito.config import ConfigError
-from nito.roulette.config import config_from_dict, load_config, validate
-from nito.roulette.wheel import (
+from roulette.config import ConfigError, config_from_dict, load_config, validate
+from roulette.wheel import (
     DOUBLE_ZERO,
     RED,
     Wheel,
@@ -66,16 +67,39 @@ def test_streaks_zero_breaks_everything():
     assert gap([1, 2, 0], "verde") == 0
 
 
-def test_example_config_is_valid():
-    cfg = load_config("roulette.example.toml", env={})
+def test_example_config_is_valid(tmp_path):
+    cfg = load_config("config.example.toml")
     assert {t.source for t in cfg.tables} == {"manual", "simulator"}
     assert len(cfg.providers()) >= 4
-    with pytest.raises(ConfigError):
-        validate(cfg, require_telegram=True)
-    env = {"ROULETTE_BOT_TOKEN": "1:a", "ROULETTE_ALLOWED_USERS": "5, 6"}
-    cfg = load_config("roulette.example.toml", env=env)
+    with pytest.raises(ConfigError) as err:
+        validate(cfg, require_telegram=True)  # token e user id ancora da inserire
+    assert "token mancante" in str(err.value) and "allowed_users" in str(err.value)
+    # come lo compila l'utente
+    text = Path("config.example.toml").read_text(encoding="utf-8")
+    text = text.replace('token = ""', 'token = "123456789:AAHabc"', 1)
+    text = text.replace("allowed_users = []", "allowed_users = [5, 6]", 1)
+    filled = tmp_path / "config.toml"
+    filled.write_text(text, encoding="utf-8")
+    cfg = load_config(filled)
     validate(cfg, require_telegram=True)
-    assert cfg.allowed_user_ids == {5, 6}
+    assert cfg.telegram_token == "123456789:AAHabc" and cfg.allowed_user_ids == {5, 6}
+
+
+@pytest.mark.parametrize("value,expected", [(5, {5}), ("5, 6", {5, 6}), (["7", 8], {7, 8})])
+def test_allowed_users_formats(value, expected):
+    cfg = config_from_dict({"telegram": {"allowed_users": value}, "tables": [_table()]})
+    assert cfg.allowed_user_ids == expected
+
+
+def test_missing_or_broken_config_file(tmp_path):
+    with pytest.raises(ConfigError, match="Copia config.example.toml"):
+        load_config(tmp_path / "config.toml")
+    broken = tmp_path / "rotto.toml"
+    broken.write_text('[telegram]\ntoken = "senza virgolette finali\n', encoding="utf-8")
+    with pytest.raises(ConfigError, match="non è scritto correttamente"):
+        load_config(broken)
+    with pytest.raises(ConfigError):
+        config_from_dict({"telegram": {"allowed_users": ["io"]}, "tables": [_table()]})
 
 
 def _table(**kw):
@@ -99,19 +123,13 @@ def _table(**kw):
 )
 def test_invalid_tables(tables):
     with pytest.raises(ConfigError):
-        config_from_dict({"tables": tables}, env={})
+        config_from_dict({"tables": tables})
 
 
 def test_env_vars_in_feed_headers(monkeypatch):
     monkeypatch.setenv("TOKEN_TEST_ROULETTE", "segreto")
     t = _table(source="http_json", url="https://x/feed", number_path="n", id_path="id",
                headers={"Authorization": "Bearer ${TOKEN_TEST_ROULETTE}"})
-    cfg = config_from_dict({"tables": [t]}, env={})
+    cfg = config_from_dict({"tables": [t]})
     assert cfg.tables[0].headers["Authorization"] == "Bearer segreto"
     assert cfg.tables[0].interval_sec == 15
-
-
-def test_database_path_from_env():
-    env = {"ROULETTE_DATABASE": "/data/roulette.sqlite3"}
-    assert load_config("roulette.example.toml", env=env).database == "/data/roulette.sqlite3"
-    assert load_config("roulette.example.toml", env={}).database == "roulette.sqlite3"

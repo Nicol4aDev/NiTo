@@ -1,4 +1,4 @@
-"""Configurazione del roulette tracker (`roulette.toml`) e segreti da `.env`."""
+"""Configurazione del bot (`config.toml`): token Telegram, utenti autorizzati, tavoli."""
 
 from __future__ import annotations
 
@@ -9,13 +9,16 @@ from dataclasses import dataclass, field, fields
 from pathlib import Path
 from typing import Any
 
-from ..config import ConfigError
 from .wheel import Wheel
 
 SOURCES = ("manual", "simulator", "http_json")
 DEFAULT_INTERVAL = {"simulator": 30.0, "http_json": 15.0}
 
 _TABLE_ID = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
+
+
+class ConfigError(ValueError):
+    pass
 
 
 def slugify(text: str) -> str:
@@ -70,16 +73,17 @@ class RouletteConfig:
         return out
 
 
-def _parse_ids(raw: str) -> frozenset[int]:
+def _parse_ids(value: Any) -> frozenset[int]:
+    """Accetta 123456789, [123, 456] oppure "123, 456"."""
+    items = value if isinstance(value, list) else str(value).replace(";", ",").split(",")
     ids = set()
-    for part in raw.replace(";", ",").split(","):
-        part = part.strip()
-        if not part:
+    for item in items:
+        text = str(item).strip()
+        if not text:
             continue
-        try:
-            ids.add(int(part))
-        except ValueError as exc:
-            raise ConfigError(f"ROULETTE_ALLOWED_USERS contiene un id non numerico: {part!r}") from exc
+        if not text.isdigit():
+            raise ConfigError(f"[telegram] allowed_users contiene un id non numerico: {text!r}")
+        ids.add(int(text))
     return frozenset(ids)
 
 
@@ -104,13 +108,16 @@ def _table(data: dict[str, Any], index: int) -> TableConfig:
     return TableConfig(**data)
 
 
-def config_from_dict(data: dict[str, Any], env: dict[str, str] | None = None) -> RouletteConfig:
-    env = dict(os.environ) if env is None else env
+def config_from_dict(data: dict[str, Any]) -> RouletteConfig:
     data = dict(data)
     general = dict(data.pop("general", {}))
+    telegram = dict(data.pop("telegram", {}))
     tables = data.pop("tables", [])
     if data:
         raise ConfigError(f"Sezioni sconosciute: {', '.join(sorted(data))}")
+    unknown = set(telegram) - {"token", "allowed_users"}
+    if unknown:
+        raise ConfigError(f"Chiavi sconosciute in [telegram]: {', '.join(sorted(unknown))}")
     known = {f.name for f in fields(RouletteConfig)} - {"tables", "telegram_token", "allowed_user_ids"}
     unknown = set(general) - known
     if unknown:
@@ -118,12 +125,9 @@ def config_from_dict(data: dict[str, Any], env: dict[str, str] | None = None) ->
     cfg = RouletteConfig(
         **general,
         tables=[_table(t, i) for i, t in enumerate(tables)],
-        telegram_token=env.get("ROULETTE_BOT_TOKEN", ""),
-        allowed_user_ids=_parse_ids(env.get("ROULETTE_ALLOWED_USERS", "")),
+        telegram_token=str(telegram.get("token", "")).strip(),
+        allowed_user_ids=_parse_ids(telegram.get("allowed_users", [])),
     )
-    # sui servizi cloud il database va su un disco persistente (es. /data/roulette.sqlite3)
-    if env.get("ROULETTE_DATABASE"):
-        cfg.database = env["ROULETTE_DATABASE"]
     for t in cfg.tables:
         if not t.interval_sec:
             t.interval_sec = DEFAULT_INTERVAL.get(t.source, 0.0)
@@ -131,13 +135,19 @@ def config_from_dict(data: dict[str, Any], env: dict[str, str] | None = None) ->
     return cfg
 
 
-def load_config(path: str | Path = "roulette.toml", env: dict[str, str] | None = None) -> RouletteConfig:
+def load_config(path: str | Path = "config.toml") -> RouletteConfig:
     path = Path(path)
     if not path.exists():
-        raise ConfigError(f"File di configurazione non trovato: {path}")
+        raise ConfigError(
+            f"File di configurazione non trovato: {path}\n"
+            "Copia config.example.toml in config.toml e inserisci token e user id."
+        )
     with path.open("rb") as fh:
-        data = tomllib.load(fh)
-    return config_from_dict(data, env)
+        try:
+            data = tomllib.load(fh)
+        except tomllib.TOMLDecodeError as exc:
+            raise ConfigError(f"{path} non è scritto correttamente: {exc}") from exc
+    return config_from_dict(data)
 
 
 def validate(cfg: RouletteConfig, require_telegram: bool = False) -> None:
@@ -179,9 +189,11 @@ def validate(cfg: RouletteConfig, require_telegram: bool = False) -> None:
 
     if require_telegram:
         if not cfg.telegram_token:
-            errors.append("ROULETTE_BOT_TOKEN mancante")
+            errors.append("token mancante: incollalo in config.toml, sezione [telegram], voce token")
         if not cfg.allowed_user_ids:
-            errors.append("ROULETTE_ALLOWED_USERS mancante: nessuno potrebbe usare il bot")
+            errors.append(
+                "allowed_users vuoto: metti il tuo user id Telegram in config.toml, sezione [telegram]"
+            )
 
     if errors:
         raise ConfigError("Configurazione non valida:\n- " + "\n- ".join(errors))

@@ -100,7 +100,7 @@ def create_runtime(
         elif t.source == "http_json":
             if rt.http is None:
                 rt.http = httpx.AsyncClient(
-                    headers={"User-Agent": "nito-roulette/0.1"}, follow_redirects=True
+                    headers={"User-Agent": "roulette-tracker/1.0"}, follow_redirects=True
                 )
             rt.feeds[t.id] = HttpJsonSource(t, rt.http)
     return rt
@@ -318,7 +318,7 @@ def _is_allowed(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
 
 
 def authorized(func: Handler) -> Handler:
-    """Solo gli user id in ROULETTE_ALLOWED_USERS possono usare comandi e pulsanti."""
+    """Solo gli user id in [telegram] allowed_users possono usare comandi e pulsanti."""
 
     @functools.wraps(func)
     async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -329,8 +329,8 @@ def authorized(func: Handler) -> Handler:
                 await update.callback_query.answer("⛔ Non autorizzato", show_alert=True)
             elif update.effective_message:
                 await update.effective_message.reply_text(
-                    f"⛔ Non autorizzato. Il tuo user id è {uid}: aggiungilo a "
-                    "ROULETTE_ALLOWED_USERS se questo è il tuo bot."
+                    f"⛔ Non autorizzato. Il tuo user id è {uid}: aggiungilo ad "
+                    "allowed_users in config.toml se questo è il tuo bot."
                 )
             return
         await func(update, context)

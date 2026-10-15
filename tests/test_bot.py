@@ -2,7 +2,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from nito.roulette.bot import (
+from roulette.bot import (
     authorized,
     build_application,
     create_runtime,
@@ -16,8 +16,8 @@ from nito.roulette.bot import (
     undo,
     wizard,
 )
-from nito.roulette.config import config_from_dict
-from nito.roulette.store import Store
+from roulette.config import config_from_dict
+from roulette.store import Store
 
 TABLES = [
     {"id": "evo-lightning", "name": "Lightning Roulette", "provider": "Evolution"},
@@ -31,7 +31,7 @@ CHAT = 42
 
 @pytest.fixture
 def rt():
-    cfg = config_from_dict({"tables": TABLES}, env={"ROULETTE_ALLOWED_USERS": "7"})
+    cfg = config_from_dict({"telegram": {"allowed_users": [7]}, "tables": TABLES})
     return create_runtime(cfg, Store(), clock=lambda: 1_760_000_000.0)
 
 
@@ -205,7 +205,7 @@ async def test_buttons_delete_alert_and_show_table(rt):
 
 def test_application_builds_without_network(rt):
     cfg = config_from_dict(
-        {"tables": TABLES}, env={"ROULETTE_BOT_TOKEN": "123:abc", "ROULETTE_ALLOWED_USERS": "1"}
+        {"telegram": {"token": "123:abc", "allowed_users": [1]}, "tables": TABLES}
     )
     app = build_application(cfg)
     commands = {c for h in app.handlers[0] for c in getattr(h, "commands", ())}
