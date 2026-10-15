@@ -210,3 +210,24 @@ def test_application_builds_without_network(rt):
     app = build_application(cfg)
     commands = {c for h in app.handlers[0] for c in getattr(h, "commands", ())}
     assert {"tavoli", "ultimi", "serie", "stats", "alert", "alerts", "add", "inserisci"} <= commands
+
+
+def test_rejected_token_gives_a_clear_message(tmp_path, monkeypatch, capsys):
+    from telegram.error import InvalidToken
+
+    import roulette.bot
+    from roulette.__main__ import main
+
+    class App:
+        def run_polling(self, **kw):
+            raise InvalidToken("rejected")
+
+    monkeypatch.setattr(roulette.bot, "build_application", lambda cfg: App())
+    config = tmp_path / "config.toml"
+    config.write_text(
+        '[telegram]\ntoken = "1:abc"\nallowed_users = [1]\n'
+        '[[tables]]\nid = "t"\nname = "T"\nprovider = "P"\n',
+        encoding="utf-8",
+    )
+    assert main(["--config", str(config)]) == 2
+    assert "rifiutato il token" in capsys.readouterr().err

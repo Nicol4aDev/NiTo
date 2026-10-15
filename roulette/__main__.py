@@ -37,9 +37,19 @@ def main(argv: list[str] | None = None) -> int:
               f"{len(cfg.providers())} provider.")
         return 0
 
+    from telegram.error import InvalidToken
+
     from .bot import build_application
 
-    build_application(cfg).run_polling(allowed_updates=["message", "callback_query"])
+    try:
+        build_application(cfg).run_polling(allowed_updates=["message", "callback_query"])
+    except InvalidToken:
+        print(
+            "Telegram ha rifiutato il token. Copia di nuovo il token da @BotFather "
+            "(/mybots → il tuo bot → API Token) e incollalo in config.toml, voce token.",
+            file=sys.stderr,
+        )
+        return 2
     return 0
 
 
