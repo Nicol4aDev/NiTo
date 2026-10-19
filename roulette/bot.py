@@ -127,8 +127,13 @@ def find_table(cfg: RouletteConfig, text: str) -> TableConfig | None:
 
 
 def find_provider(cfg: RouletteConfig, text: str) -> str | None:
+    """Per nome completo o per inizio univoco: "playtech" → "playtech-live"."""
     slug = slugify(text)
-    return slug if slug in cfg.providers() else None
+    providers = cfg.providers()
+    if not slug or slug in providers:
+        return slug or None
+    matches = [p for p in providers if p.startswith(slug)]
+    return matches[0] if len(matches) == 1 else None
 
 
 def parse_numbers(table: TableConfig, tokens: list[str]) -> list[int]:

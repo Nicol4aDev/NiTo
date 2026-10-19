@@ -69,8 +69,9 @@ def test_streaks_zero_breaks_everything():
 
 def test_example_config_is_valid(tmp_path):
     cfg = load_config("config.example.toml")
-    assert {t.source for t in cfg.tables} == {"manual", "simulator"}
-    assert len(cfg.providers()) >= 4
+    assert {t.source for t in cfg.tables} == {"manual"}
+    assert cfg.providers() == {"playtech-live": "Playtech Live", "evolution": "Evolution"}
+    assert len(cfg.tables) == 14
     with pytest.raises(ConfigError) as err:
         validate(cfg, require_telegram=True)  # token e user id ancora da inserire
     assert "token mancante" in str(err.value) and "allowed_users" in str(err.value)

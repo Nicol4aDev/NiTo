@@ -50,6 +50,9 @@ def test_parse_alert(rt):
         "pari", 5, "provider", "pragmatic-play"
     )
     assert parse_alert(rt.cfg, ["d1", "7", "mega"]) == ("d1", 7, "table", "pp-mega")
+    assert parse_alert(rt.cfg, ["rosso", "6", "pragmatic"]) == (
+        "rosso", 6, "provider", "pragmatic-play"
+    )
     for bad in (["rosso"], ["viola", "5"], ["rosso", "1"], ["rosso", "99"], ["rosso", "5", "boh"]):
         with pytest.raises(ValueError):
             parse_alert(rt.cfg, bad)

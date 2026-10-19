@@ -13,7 +13,7 @@ notify_break = true            # avvisa quando una serie segnalata si interrompe
 max_alerts_per_chat = 30
 
 # Ogni [[tables]] è un tavolo. Campi comuni:
-#   id        identificativo breve (a-z, 0-9, - e _), si usa nei comandi: /ultimi evo-lightning
+#   id        identificativo breve (a-z, 0-9, - e _), si usa nei comandi: /ultimi evo-speed
 #   name      nome mostrato
 #   provider  provider del gioco: gli alert si possono limitare a un provider
 #   wheel     "european" (0-36, default) o "american" (0, 00, 1-36)
@@ -22,11 +22,57 @@ max_alerts_per_chat = 30
 #               simulator  giri casuali ogni interval_sec (per provare il bot)
 #               http_json  letti da un feed JSON ogni interval_sec (vedi esempio in fondo)
 
+# --- Playtech Live ---
+
 [[tables]]
-id = "evo-lightning"
-name = "Lightning Roulette"
-provider = "Evolution"
+id = "pt-lounge"
+name = "Lounge Roulette"
+provider = "Playtech Live"
 source = "manual"
+
+[[tables]]
+id = "pt-arabic"
+name = "Arabic Roulette"
+provider = "Playtech Live"
+source = "manual"
+
+[[tables]]
+id = "pt-roulette"
+name = "Roulette"
+provider = "Playtech Live"
+source = "manual"
+
+[[tables]]
+id = "pt-brasileira"
+name = "Roleta Brasileira"
+provider = "Playtech Live"
+source = "manual"
+
+[[tables]]
+id = "pt-bucharest"
+name = "Bucharest French Roulette"
+provider = "Playtech Live"
+source = "manual"
+
+[[tables]]
+id = "pt-greek-speed"
+name = "Greek Speed Roulette"
+provider = "Playtech Live"
+source = "manual"
+
+[[tables]]
+id = "pt-prestige"
+name = "Prestige Roulette"
+provider = "Playtech Live"
+source = "manual"
+
+[[tables]]
+id = "pt-deutsches"
+name = "Deutsches Roulette"
+provider = "Playtech Live"
+source = "manual"
+
+# --- Evolution ---
 
 [[tables]]
 id = "evo-immersive"
@@ -35,38 +81,43 @@ provider = "Evolution"
 source = "manual"
 
 [[tables]]
-id = "pp-mega"
-name = "Mega Roulette"
-provider = "Pragmatic Play"
+id = "evo-venezia"
+name = "Venezia Roulette"
+provider = "Evolution"
 source = "manual"
 
 [[tables]]
-id = "pt-quantum"
-name = "Quantum Roulette"
-provider = "Playtech"
+id = "evo-dynasty"
+name = "Dynasty Roulette"
+provider = "Evolution"
 source = "manual"
 
 [[tables]]
-id = "ezugi-auto"
-name = "Auto Roulette"
-provider = "Ezugi"
+id = "evo-speed"
+name = "Speed Roulette"
+provider = "Evolution"
 source = "manual"
 
 [[tables]]
-id = "us-demo"
-name = "American Roulette"
-provider = "Demo"
-wheel = "american"
+id = "evo-roulette"
+name = "Roulette"
+provider = "Evolution"
 source = "manual"
 
-# Tavolo simulato: genera un numero casuale ogni 20 secondi. Utile per
-# provare gli alert subito; toglilo quando colleghi le tue fonti.
 [[tables]]
-id = "demo"
-name = "Roulette simulata"
-provider = "Demo"
-source = "simulator"
-interval_sec = 20
+id = "evo-vip"
+name = "VIP Roulette"
+provider = "Evolution"
+source = "manual"
+
+# Per provare gli alert senza inserire numeri, togli i # da queste righe:
+# un tavolo simulato che fa uscire un numero casuale ogni 20 secondi.
+# [[tables]]
+# id = "demo"
+# name = "Roulette simulata"
+# provider = "Demo"
+# source = "simulator"
+# interval_sec = 20
 
 # Esempio di feed JSON. I provider non pubblicano API aperte con i risultati:
 # usa un servizio a cui hai accesso e che sei autorizzato a interrogare.

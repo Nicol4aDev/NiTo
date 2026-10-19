@@ -1,7 +1,7 @@
 # Roulette tracker — bot Telegram
 
 Bot Telegram che registra i numeri usciti su più tavoli di roulette, di
-provider diversi (Evolution, Pragmatic Play, Playtech, Ezugi, …), mostra
+provider diversi (Playtech Live, Evolution, …), mostra
 statistiche e serie in corso e **ti avvisa quando un colore (o un'altra
 categoria) esce N volte di fila**, con N scelto da te.
 
@@ -14,7 +14,7 @@ categoria) esce N volte di fila**, con N scelto da te.
 ## Esempio di alert
 
 ```
-🎰 Lightning Roulette · Evolution
+🎰 Immersive Roulette · Evolution
 🚨 🔴 Rosso: 6 di fila
 Uscito: 🔴32
 Ultimi: 🔴32 🔴19 🔴21 🔴25 🔴34 🔴3 ⚫15 🟢0 ⚫22 🔴14
@@ -56,21 +56,21 @@ Il bot si avvia con `python -m roulette`.
 | `/alert` | crea un alert con i pulsanti: categoria → quante di fila → tavoli |
 | `/alert rosso 6 [tavolo o provider]` | crea un alert in una riga |
 | `/alerts` | i tuoi alert, con i pulsanti per eliminarli |
-| `/add tavolo 17 0 32` | registra numeri a mano, dal più vecchio al più recente |
+| `/add evo-speed 17 0 32` | registra numeri a mano, dal più vecchio al più recente |
 | `/inserisci [tavolo]` | inserimento rapido: ogni messaggio con dei numeri viene registrato |
 | `/fine` | esce dall'inserimento rapido |
 | `/annulla [tavolo]` | cancella l'ultimo numero inserito a mano |
 
-Il tavolo si indica con il suo id (`evo-lightning`), con il nome o con una parte
-univoca di id o nome (`mega`). Se manca, il bot mostra i pulsanti per sceglierlo.
+Il tavolo si indica con il suo id (`evo-speed`), con il nome o con una parte
+univoca di id o nome (`prestige`). Se manca, il bot mostra i pulsanti per sceglierlo.
 
 ### Alert
 
 ```
 /alert rosso 6                     6 rossi di fila su qualsiasi tavolo
 /alert nero 8 evolution            8 neri di fila sui tavoli Evolution
-/alert dispari 5 pragmatic play    5 dispari di fila sui tavoli Pragmatic Play
-/alert verde 2 mega                due zeri di fila su Mega Roulette
+/alert dispari 5 playtech          5 dispari di fila sui tavoli Playtech Live
+/alert verde 2 prestige            due zeri di fila su Prestige Roulette
 /alert d3 7                        terza dozzina 7 volte di fila
 ```
 
